@@ -269,10 +269,15 @@ https://johnshall.github.io/Shadowrocket-ADBlock-Rules-Forever/sr_ad_only.conf
 
 | 做法 | 说明 |
 |------|------|
-| conf 规则 | `100.64.0.0/10` + `ts.net` → DIRECT（不进代理节点） |
-| **禁止** | `tun-excluded-routes` 写入 `100.64.0.0/10`（Mac 上易导致 100.64 指到家宽网关，Termius 超时） |
-| iOS | 可用 Shadowrocket 内置 Tailscale 集成 |
-| macOS | TS 客户端；远程 SSH 可用 `ProxyCommand tailscale nc`；或 Clash Verge TUN |
+| conf 规则 | `100.64.0.0/10` + `*.ts.net` → **TAILSCALE**（iOS 内置 TS 出口，勿用 DIRECT） |
+| 自建 DERP | `derp-cn.klaasje.dpdns.org` + `tailscale.com` → **DIRECT**（底层中继勿走 VLESS） |
+| **禁止** | `tun-excluded-routes` 写入 `100.64.0.0/10`（Mac 上易导致 100.64 指到家宽网关） |
+| iOS | Shadowrocket 内置 Tailscale + 上表规则；出门 SSH mini 依赖 magicsock/DERP 900 |
+| macOS | 官方 TS 客户端；远程 SSH 可用 Clash TUN 或 `ProxyCommand tailscale nc` |
+
+**排障（iOS Termius → mini 失败时）**：PacketTunnel 若大量  
+`wireguard packet could not be sent on magicsock path`，说明 **TS 底层发不出包**（不是 SSH 密码问题）。  
+检查：DERP 900 存活、`OmitDefaultRegions` 时 derp 可达、conf 已更新并重连 VPN、Mac mini 在线且同 tailnet。
 
 ---
 
