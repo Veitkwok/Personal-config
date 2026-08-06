@@ -271,6 +271,8 @@ https://johnshall.github.io/Shadowrocket-ADBlock-Rules-Forever/sr_ad_only.conf
 |------|------|
 | conf 规则 | `100.64.0.0/10` + `*.ts.net` → **TAILSCALE**（iOS 内置 TS 出口，勿用 DIRECT） |
 | 自建 DERP | `derp-cn.klaasje.dpdns.org` + `tailscale.com` → **DIRECT**（底层中继勿走 VLESS） |
+| DERP 真 IP | `[Host]` 固定 `derp-cn…=8.153.203.255` + `always-real-ip`（避免 Fake-IP `198.18.x` 搞死 magicsock） |
+| Clash 侧 | Fake-IP filter 排除 `klaasje.dpdns.org`，规则 DIRECT；与 SR 相同原理 |
 | **禁止** | `tun-excluded-routes` 写入 `100.64.0.0/10`（Mac 上易导致 100.64 指到家宽网关） |
 | iOS | Shadowrocket 内置 Tailscale + 上表规则；出门 SSH mini 依赖 magicsock/DERP 900 |
 | macOS | 官方 TS 客户端；远程 SSH 可用 Clash TUN 或 `ProxyCommand tailscale nc` |
