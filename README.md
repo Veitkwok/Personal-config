@@ -1,114 +1,120 @@
-# Personal-config · Shadowrocket 分流配置
+# Shadowrocket Config Tuning
 
-面向 **iOS / macOS Shadowrocket** 的可分发分流配置。  
-**主配置：`vps-routing.conf`**
-
-> 不含节点订阅、密码、MITM 证书、私人 DERP/IP。  
-> 每次改动都通过 **Git 提交** 记录，可在 GitHub 上查看历史与 diff（见文末）。
+本地工作区：最终产品 + 历史归档 + 进度交接。  
+远程分发：GitHub `Veitkwok/Personal-config`。
 
 ---
 
-## 快速开始
+## 目录结构
 
 ```text
-https://raw.githubusercontent.com/Veitkwok/Personal-config/main/vps-routing.conf
+shadowrocket-config-tuning/
+├── README.md                 ← 本文件（新会话先读）
+├── vps-routing.conf          ← 最终产品（与 GitHub main 同步）
+└── archive/                  ← 旧 conf / 旧交接 / 模块副本（只读参考）
 ```
 
-1. Shadowrocket → **配置** → **+** → 粘贴上述 URL → 下载  
-2. 勾选使用；**全局路由 = 配置**；延迟测试建议 **CONNECT**  
-3. 首页用**订阅**添加节点（节点名建议含 `HK`/`香港`、`US`/`美国` 等）  
-4. 以后改 GitHub 后，在 conf 上点 **更新配置** 即可  
-
-首次加载会拉取 **Johnshall 广告库（include）**，编译可能稍慢，属正常。
-
----
-
-## 当前设计要点（2026-08-07）
-
-| 项目 | 说明 |
+| 路径 | 角色 |
 |------|------|
-| 广告 | `[General] include = …/sr_ad_only.conf`（主配置优先于 include） |
-| Tailscale | **不**使用 SR 内置 TS 策略；`100.64/10` + `tailscale.com`/`ts.net` → **DIRECT**，配合 **官方 Tailscale 客户端** |
-| 私人 DERP | **不写进 conf**；在 Tailscale 控制台 derpMap 配置（建议节点带 `IPv4`） |
-| 隐私 | 无个人 VPS IP、无私人域名 Host |
-| 模块 | 证书模块 / Apns 等本机安装；提供 `PROXY` 组名兼容 |
-| DNS | 国内优先，海外 DoH 仅 fallback`#proxy`，利于国内 App + Reality 节点 |
+| **`vps-routing.conf`** | **唯一主配置**；改规则只动这个（或先改本地再 push） |
+| `archive/` | 历史实验，勿当现用配置 |
+| GitHub | https://github.com/Veitkwok/Personal-config |
+| raw 安装 URL | `https://raw.githubusercontent.com/Veitkwok/Personal-config/main/vps-routing.conf` |
 
-### 策略组（英文）
-
-`HK` / `US` / `Screens` / `Proxy` / `PROXY` / `Failsafe` / `AI` / `Social` / `Mail` / `Google` / `Apple` / `Microsoft` / `China` / YouTube / Telegram / Netflix / Spotify / PayPal  
-
-- **Failsafe**：未匹配流量兜底（可选手动改 DIRECT）  
-- **Screens**：节点名含 Screens 时才有成员；没有则组为空，无妨  
-
-### iPhone 建议
-
-- 本 conf 作**代理分流**即可  
-- **关闭** Shadowrocket 设置里的 **Tailscale 集成**（内置 TS 在 iOS 上不稳定，且可能影响其它 App）  
-- 若需要 SSH 到 tailnet：关 SR，用**官方 Tailscale App**（与 SR 二选一）  
-
-### macOS（Air / mini）建议
-
-- **Shadowrocket（或 Clash）管代理** + **官方 Tailscale 管 100.x**  
-- conf **不会**把 `100.64.0.0/10` 放进 `tun-excluded-routes`（避免 Mac 路由踩坑）  
-- 私人 DERP 用控制台 derpMap，不依赖本 conf 域名  
+**约定**：改 conf 尽量说明增删哪几行；公开仓勿写节点密码、MITM `ca-p12`、私人 DERP IP。
 
 ---
 
-## 仓库文件
+## 当前产品状态（vps-routing，约 2026-08-07）
 
-| 文件 | 说明 |
+### 已具备
+
+- 英文策略组：`HK` / `US` / `Screens` / `Proxy` / `PROXY` / `Failsafe` / `AI` / `Social` / `Mail` / `Google` / `Apple` / `Microsoft` / `China` / YouTube 等  
+- 国内优先 DNS + fallback DoH`#proxy`（修国内 App 慢）  
+- `include` Johnshall **`sr_ad_only`**（广告，主 conf 优先于 include）  
+- Mail 抢先规则（Gmail/Outlook 统一 `Mail`，默认 US）  
+- LinkedIn / Social 防 GEOIP,CN 误直连  
+- **无** `[MITM]`、**无**私人 DERP/Host 钉 IP、**无** `TAILSCALE` 策略  
+- `100.64/10` + `tailscale.com`/`ts.net` → **DIRECT**（给**官方** Tailscale 腾路）  
+- `tun-excluded` **不含** `100.64`（保护 Mac）  
+- `PROXY` 别名：兼容 Apns 等模块  
+
+### 设备用法（已定）
+
+| 设备 | 代理 | Tailscale |
+|------|------|-----------|
+| **iPhone** | Shadowrocket + 本 conf | **关** SR 内置 TS；要 SSH 用**官方 TS App**（与 SR 二选一） |
+| **Air / mini** | SR 或 Clash Verge TUN | **官方 Tailscale 客户端**；私人 DERP 在 TS 控制台 derpMap（建议节点写 `IPv4`） |
+
+### 隧道 UI 备忘
+
+- CarPlay：`包括本地网络` / `包括所有网络` 建议关  
+- APNs：靠本机 **Apns.module**（`archive/Apns.module` 有副本），策略名 `PROXY`  
+
+---
+
+## 已踩坑（新会话不要重蹈）
+
+1. **DNS 全 CF#proxy** → 国内 App 慢；已改为国内优先。  
+2. **LinkedIn** → 国内 DNS + GEOIP,CN 误直连；需在 GEOIP 前强制代理。  
+3. **Mail 反复登录** → 出口不统一 / MITM 解密邮件域；Mail 组 + 证书模块排除。  
+4. **MITM 与云更新** → 证书放**证书模块**，勿进 conf。  
+5. **iPhone SR 内置 Tailscale** → 跨网 magicsock 失败、曾拖垮 X；**已放弃**该路径。  
+6. **Fake-IP `198.18.x`** → Clash/SR 都会劫持 `derp` 域名；私人 DERP 应 **derpMap 写 IPv4**，勿依赖 conf Host。  
+7. **Mac `tun-excluded` 含 100.64** → 易生成错误静态路由；conf **禁止**。  
+8. **大 include / 模块 MITM YouTube** → 可能影响启动与 YT；X/Grok 日志曾见 **UDP/QUIC port unreachable**。  
+
+---
+
+## 未解决 / 待调优（优先级）
+
+> **用户明确：X、Grok、YouTube 必须稳定、优先于其它花活。**
+
+| 优先级 | 项 | 状态 / 线索 |
+|--------|-----|-------------|
+| **P0** | **X / Grok / YouTube 体验** | 2026-08-07 log：TCP→US-Veit 能连，但 Grok **UDP 443 relay → ICMP port unreachable**（QUIC 可能被掐）；MITM 名单含 youtube/googlevideo；部分 Google 附属流量走 Screens |
+| P1 | 广告 include 体积/编译 | `sr_ad_only` 很大；首次更新可能慢；是否与稳定性冲突待观察 |
+| P1 | 策略组 UI 出口统一 | 确认 AI/Social/YouTube/US/Failsafe 实际选中节点（log 里 grok/twitter 显示 US，与组名 Social/AI 可能不一致） |
+| P2 | 节点 UDP 转发 | Reality/VLESS 是否开 UDP，影响 QUIC |
+| P2 | 私人 DERP | 控制台 derpMap + `IPv4`；与 conf 脱钩 |
+| — | iPhone SSH mini | **已放弃**（非刚需） |
+
+### 下次动 conf 前建议
+
+1. 再抓一份「只开 X 或 Grok 刷不出」时的 PacketTunnel log。  
+2. 临时关掉 YouTube/MITM 相关模块做二分。  
+3. 确认节点 UDP；必要时对 X/Grok/YT 做**显式靠前规则 + 固定 US 出口**（RULE-SET 或 DOMAIN 均可，以稳为准）。  
+
+**改规则约定**：只说明增删行，勿整文件覆盖（保留本机 MITM 模块与本地习惯）。
+
+---
+
+## 新会话开场（可复制）
+
+```text
+继续 Shadowrocket 配置调优。
+工作区：/Users/veitkwok/Documents/00_Projects/shadowrocket-config-tuning
+主配置：vps-routing.conf（GitHub Personal-config 同步）
+先读：本目录 README.md
+重点：X / Grok / YouTube 必须稳定；iPhone 不用 SR 内置 TS；改 conf 只给 diff、勿整文件覆盖 MITM。
+```
+
+---
+
+## archive 里有什么（简表）
+
+| 文件 | 用途 |
 |------|------|
-| **`vps-routing.conf`** | **当前主配置** |
-| `README.md` | 本说明 |
-| `VPS-HK-US.conf` / `VPS.conf` | 历史文件，勿作主用 |
+| `VPS-HK-US_*.conf` / `VPS_old` / `VPS-optimized` / `default.conf` | 历史 conf |
+| `SESSION-Shadowrocket-配置.md` / `SESSION-Tailscale-DERP.md` | 更早交接（部分过时，以本 README 为准） |
+| `Apns.module` | APNs 模块副本 |
 
 ---
 
-## GitHub 是否可溯源？有没有历史版本？
-
-**有。** 本仓库用 **Git**，每次 `push` 都是一条 **commit（提交）**。
-
-| 能力 | 怎么看 |
-|------|--------|
-| 历史列表 | 打开仓库 → **Commits**（提交记录） |
-| 某次改了什么 | 点进某条 commit → 看 **绿色增行 / 红色删行**（diff） |
-| 对比两个版本 | 任意两个 commit 可 diff；或看文件历史 **History** / **Blame** |
-| 回退 | 可 checkout 旧 commit、revert 某次提交，或在网页看旧文件内容后恢复 |
-
-例如主配置的提交页（仓库 Commits 里点开即可）：
+## Git 溯源
 
 ```text
 https://github.com/Veitkwok/Personal-config/commits/main/vps-routing.conf
 ```
 
-整仓提交历史：
-
-```text
-https://github.com/Veitkwok/Personal-config/commits/main
-```
-
-本地也可用：
-
-```bash
-git log --oneline -- vps-routing.conf
-git show HEAD:vps-routing.conf          # 某版本全文
-git diff HEAD~1 HEAD -- vps-routing.conf  # 最近一次相对上一次的增减
-```
-
-**注意：** 只有 **push 进 GitHub 的改动** 才有云端记录；只改手机本地、未推送的，仓库里看不到。
-
----
-
-## 使用与更新注意
-
-1. 必须用 **URL 添加** conf，才会有「更新配置」。  
-2. **更新会覆盖**该 conf 内本机手改 → 长期修改请改 GitHub 再更新。  
-3. **模块 / 证书** 不在 conf 里，更新 conf **不会**自动删证书模块参数。  
-4. include 的广告库随 Johnshall **每日构建**；主 conf 逻辑仍以本仓库为准。  
-
----
-
-## 许可与免责
-
-个人/朋友自用分流模板。第三方规则版权归原作者。请遵守当地法律。
+每次 push 可看增删行；回退用 commit history。

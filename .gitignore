@@ -1,0 +1,7 @@
+# Local-only history / notes — never publish
+archive/
+
+# OS / editor noise
+.DS_Store
+*.swp
+*~
