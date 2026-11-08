@@ -1,7 +1,11 @@
 # Local-only history / notes — never publish
 archive/
+2026-10-30-Evoxt-HK-隧道与UDP.md
 
 # OS / editor noise
 .DS_Store
 *.swp
 *~
+
+# 含节点密钥的本机运行配置，永不入库
+clash-verge-rev/当前配置
